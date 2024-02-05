@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <input type="checkbox" id="chk" aria-hidden="true" />
+      <div class="signup">
+        <form id="Mainform">
+          <label for="chk" aria-hidden="true">Sign Up</label>
+          <input
+            type="text"
+            name="text"
+            placeholder="User name"
+            id="username"
+            required=""
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            id="email"
+            required=""
+          />
+          <input
+            type="password"
+            name="pass"
+            placeholder="Password"
+            id="pass"
+            required=""
+          />
+          <button type ="submit">Sign Up</button>
+        </form>
+      </div>
+      <div class="login">
+        <form id="mainform" >
+          <label for="chk" aria-hidden="true">Login</label>
+          <input type="email" name="email" placeholder="Email" required="" />
+          <input
+            type="password"
+            name="pass"
+            placeholder="Password"
+            required=""
+          />
+          <button type="submit">Login</button>
+        </form>
+      </div>
+    </div>
+    <script type="module">
+          import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+          import {getDatabase,set, ref,get,child} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+          import { getAuth,createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+        apiKey: "AIzaSyBaF6UwIDg1dHvzGHVxt-5sq8EHNF-6L6w",
+        authDomain: "login-with-firebase-data-ae7b7.firebaseapp.com",
+        projectId: "login-with-firebase-data-ae7b7",
+        storageBucket: "login-with-firebase-data-ae7b7.appspot.com",
+        messagingSenderId: "582041298223",
+        appId: "1:582041298223:web:9e461d02c88fb7e362adda"
+        };
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db=getDatabase();
+        const auth=getAuth();
+        const dbref=ref(db);
+
+          const Mainform = document.getElementById('Mainform');
+          let username=document.getElementById('username');
+          
+          let email=document.getElementById('email');
+          let password=document.getElementById('pass');
+          let signup = evt=>
+          {
+            evt.preventDefault();
+            createUserWithEmailAndPassword(auth,email.value,password.value)
+            
+            .then((credentials)=>{
+              //save the user data to the database.
+              // console.log(credentials);
+              set(ref(db,'UsersAuthList/'+credentials.user.uid),
+              {
+                uname:username.value,
+                pass:password.value,
+              })
+                window.location.href="weather.html";
+            })
+            .catch((error)=>{
+              alert(error.message);
+              console.log(error.code);
+              console.log(error.message);
+            })
+          }
+          let login = evt=>
+          {
+            evt.preventDefault();
+            signInWithEmailAndPassword(auth,email.value,password.value)
+            
+            .then((credentials)=>
+            {
+              // console.log(credentials);
+              get(child(dbref,'UsersAuthList/'+credentials.user.uid)).then((snapshot)=>{
+                if(snapshot.exists)
+                {
+                  //stringify converts the json objects/arrays into strings.
+                  //saving the data on the session storage.
+                  sessionStorage.setItem("user-info",JSON.stringify({
+                     uname:snapshot.val().uname,
+                     pass:snapshot.val().pass,
+                  }))
+                  sessionStorage.setItem("user-creds",JSON.stringify(credentials.user));
+                  window.location.href="weather.html";
+                }
+              })
+             
+
+            })
+            .catch((error)=>{
+              alert(error.message);
+              console.log(error.code);
+              console.log(error.message);
+            })
+          }
+             Mainform.addEventListener('submit',signup);
+             mainform.addEventListener('submit',login);
+    </script>
+  </body>
+</html>
